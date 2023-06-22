@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Table View</title>
+  <%# found these online for making a quick table, it comes built in with a search box + paging system %>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+
+  <script>
+    $(document).ready(function() {
+        var table = $('#emissions-table').DataTable({
+        // Total number for emissions at bottom
+        footer: true,
+        footerCallback: function(row, data, start, end, display) {
+            var api = this.api();
+
+            // Calculate the total sum of the "CO2" column
+            var co2Total = api.column(0, { search: 'applied' })
+            .data()
+            .reduce(function(a, b) {
+                return parseInt(a) + parseInt(b);
+            }, 0);
+
+            $('#co2-total').html(co2Total);
+        }
+        });
+
+        // filter search boxes
+        $('#scope-filter').on('keyup', function() {
+        table.column(1).search(this.value).draw();
+        });
+
+        $('#category-filter').on('keyup', function() {
+        table.column(2).search(this.value).draw();
+        });
+    }); 
+  </script>
+</head>
+<body>
+  <%# filter search boxes %>
+  <input type="text" id="scope-filter" placeholder="Filter by Scope">
+  <input type="text" id="category-filter" placeholder="Filter by Category">
+
+  <%# the table itself %>
+  <table id="emissions-table">
+    <thead>
+        <tr>
+            <th >CO2E </th>             
+            <th >Scope </th>             
+            <th >Category </th>
+            <th>Activity </th>
+        </tr>
+    </thead>
+    <tbody>
+        <%# pull in the data calculated %>
+        <% @table_data.each do |row| %>
+        <tr>
+            <td><%= row.get_co2e %></td>
+            <td><%= row.get_scope %></td>
+            <td><%= row.get_category || "nil" %></td>
+            <td><%= row.get_activity %></td>
+        </tr>
+        <% end %>
+    </tbody>
+    <tfoot>
+        <tr>
+        <th>CO2 Total:</th>
+        <th id="co2-total"></th>
+        <th></th>
+        <th></th>
+        </tr>
+    </tfoot>
+  </table>
+</body>
+</html>
